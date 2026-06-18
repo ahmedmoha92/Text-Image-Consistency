@@ -1,0 +1,36 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "5009:5000"
+    volumes:
+      - ./data:/app/data
+      - ./api:/app
+      - ./src:/app/src
+    environment:
+      - MODEL_PATH=/app/model.pkl
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+  jupyter_ml_final:
+    build:
+      context: .
+      dockerfile: notebooks/Dockerfile
+    ports:
+      - "8891:8888"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+      - JUPYTER_TOKEN=${JUPYTER_TOKEN:-changeme}
+    restart: unless-stopped

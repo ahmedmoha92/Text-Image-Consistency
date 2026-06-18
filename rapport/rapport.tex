@@ -1,0 +1,988 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=1.8cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multicol}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+
+% Couleurs
+\definecolor{primary}{RGB}{0, 82, 155}
+\definecolor{secondary}{RGB}{0, 140, 200}
+\definecolor{accent}{RGB}{230, 80, 30}
+\definecolor{lightblue}{RGB}{225, 240, 255}
+\definecolor{lightgreen}{RGB}{225, 255, 230}
+\definecolor{lightyellow}{RGB}{255, 252, 220}
+\definecolor{lightred}{RGB}{255, 230, 225}
+\definecolor{darkgray}{RGB}{50, 50, 50}
+
+% En-tête / pied de page (simplifié)
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{primary}{\textbf{NLP -- Résumé Complet}}}
+\fancyhead[R]{\textcolor{primary}{J.ZAHIR -- Master IA-FSSM 2026}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{1pt}
+\setlength{\headheight}{20.4pt} % pour éviter l'avertissement
+
+% Boîtes colorées (sans breakable pour accélérer)
+\newtcolorbox{definitionbox}[1][]{
+  colback=lightblue, colframe=primary,
+  fonttitle=\bfseries\small, title=#1,
+  left=4pt, right=4pt, top=3pt, bottom=3pt
+}
+\newtcolorbox{formulebox}[1][]{
+  colback=lightyellow, colframe=accent,
+  fonttitle=\bfseries\small, title=#1,
+  left=4pt, right=4pt, top=3pt, bottom=3pt
+}
+\newtcolorbox{warningbox}[1][]{
+  colback=lightred, colframe=accent,
+  fonttitle=\bfseries\small, title=#1,
+  left=4pt, right=4pt, top=3pt, bottom=3pt
+}
+\newtcolorbox{keybox}[1][]{
+  colback=lightgreen, colframe=darkgray,
+  fonttitle=\bfseries\small, title=#1,
+  left=4pt, right=4pt, top=3pt, bottom=3pt
+}
+
+\setlist[itemize]{itemsep=1pt, parsep=0pt, topsep=2pt, leftmargin=14pt}
+\setlist[enumerate]{itemsep=1pt, parsep=0pt, topsep=2pt, leftmargin=14pt}
+
+\hypersetup{colorlinks=true, linkcolor=primary, urlcolor=secondary}
+
+\begin{document}
+
+% Page de titre
+\begin{tcolorbox}[colback=primary, colframe=primary, sharp corners]
+  \centering
+  \vspace{4pt}
+  {\Huge\bfseries\color{white} TRAITEMENT AUTOMATIQUE DU LANGAGE NATUREL}\\[6pt]
+  {\Large\color{white} Résumé Complet du Cours -- Préparation Examen}\\[4pt]
+  {\normalsize\color{lightblue} Master IA -- FSSM -- J.ZAHIR -- 2026}
+  \vspace{4pt}
+\end{tcolorbox}
+
+\vspace{4pt}
+
+\begin{multicols}{2}
+\tableofcontents
+\end{multicols}
+
+\vspace{6pt}
+
+% ============================================================
+\section{Vectorisation du Texte (Session 1)}
+% ============================================================
+
+\subsection{Bag of Words (BoW)}
+
+\begin{definitionbox}[Définition -- Bag of Words]
+Représentation qui transforme des documents en \textbf{vecteurs de longueur fixe}. Elle extrait des features numériques à partir de texte non structuré pour les modèles ML.
+\begin{itemize}
+  \item \textbf{Ignore} l'ordre des mots et la grammaire (le contexte est perdu)
+  \item Se concentre sur la \textbf{fréquence} d'occurrence
+  \item Résultat : une matrice Document-Terme de haute dimension (sparse)
+\end{itemize}
+\end{definitionbox}
+
+\textbf{Processus :} Définir un Vocabulaire $V$ $\rightarrow$ Compter les occurrences de chaque $v \in V$.
+
+\subsubsection{Tokenisation}
+\begin{itemize}
+  \item \textbf{Token} : unité de base d'analyse (en NLP, les «mots» sont des tokens)
+  \item \textbf{Tokenisation} : découpage du flux de caractères en unités significatives
+  \item \textbf{Normalisation} : lowercasing, stemming/lemmatisation
+  \item \textbf{Stop words} : mots très fréquents (le, un, est…) souvent supprimés
+\end{itemize}
+
+\textbf{Niveaux de granularité :}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Niveau} & \textbf{Exemple} & \textbf{Avantage/Inconvénient} \\
+\midrule
+Mot & ["NLP", "est", "fun"] & Sens préservé / grand vocab + OOV \\
+Sous-mot & ["Token","ization"] & Efficace, devine les mots nouveaux \\
+Caractère & ["T","o","k"...] & Zéro OOV / perd sens, séquences longues \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{n-grammes : capture du contexte local}
+\begin{definitionbox}[$n$-grammes]
+Séquence contiguë de $n$ items (mots ou caractères). La fenêtre glissante de taille $n$ se déplace sur la phrase.
+\begin{itemize}
+  \item $n=1$ : Unigramme (= BoW standard)
+  \item $n=2$ : Bigramme \quad $n=3$ : Trigramme
+  \item \textbf{Avantage :} préserve l'ordre local, capture les expressions multi-mots («pas content»)
+  \item \textbf{Inconvénient :} explosion combinatoire du vocabulaire pour $n$ grand
+\end{itemize}
+\end{definitionbox}
+
+\subsubsection{Limites critiques de BoW}
+\begin{warningbox}[Limitations]
+\begin{enumerate}
+  \item \textbf{Perte de contexte \& d'ordre} : «Le chien mord l'homme» = «L'homme mord le chien»
+  \item \textbf{Sparse} : vecteurs remplis de zéros
+  \item \textbf{Malédiction de la dimensionnalité} : vocab 50k mots $\Rightarrow$ espace 50k dimensions
+  \item \textbf{Pas de similarité sémantique} : «moto» et «vélo» vus comme totalement différents
+  \item \textbf{Polysémie} : «avocat» (légume vs juriste) indistingable
+\end{enumerate}
+\end{warningbox}
+
+\subsection{TF-IDF (Term Frequency -- Inverse Document Frequency)}
+
+\begin{definitionbox}[TF-IDF -- Intuition]
+Évalue l'importance d'un mot pour un document dans une collection.
+\begin{itemize}
+  \item \textbf{TF élevé + IDF élevé} : mot fréquent dans CE document, rare ailleurs $\Rightarrow$ mot clé
+  \item \textbf{TF élevé + IDF faible} : mot fréquent partout («le», «est») $\Rightarrow$ peu informatif
+\end{itemize}
+\end{definitionbox}
+
+\begin{formulebox}[Formules TF-IDF]
+\[
+\text{TF}(w, d) = \frac{\text{occurrences de } w \text{ dans } d}{\text{total des termes dans } d}
+\]
+\[
+\text{IDF}(w, D) = \log \frac{|D|}{|\{d_j : w \in d_j\}|}
+\]
+\[
+\text{TF-IDF}(w, d, D) = \text{TF}(w,d) \times \text{IDF}(w, D)
+\]
+\end{formulebox}
+
+\textbf{Schémas de pondération :} Booléen (0/1) $\rightarrow$ Compteur (fréquence) $\rightarrow$ TF-IDF (pondéré)
+
+\subsection{Normalisation et Prétraitement du Texte}
+
+\begin{definitionbox}[Stemming vs Lemmatisation]
+\begin{itemize}
+  \item \textbf{Stemming} : suppression de suffixes par heuristiques pour obtenir la «racine» (stem). Ex : wolves $\rightarrow$ wolv, cats $\rightarrow$ cat. \textbf{Porter's Stemmer} = stemmer anglais le plus commun.
+  \item \textbf{Lemmatisation} : retourne la forme canonique du dictionnaire (lemme). Utilise un vocabulaire et une analyse morphologique. Ex : am/are/is $\rightarrow$ be, wolves $\rightarrow$ wolf
+  \item \textbf{Différence clé} : le stemming est plus rapide mais moins précis ; la lemmatisation est linguistiquement correcte
+\end{itemize}
+\end{definitionbox}
+
+% ============================================================
+\section{Tâches NLP et Paradigmes d'Apprentissage}
+% ============================================================
+
+\subsection{Taxonomie des Tâches NLP}
+
+\subsubsection{Par niveau linguistique}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Niveau} & \textbf{Tâches} \\
+\midrule
+Phonétique/Morphologique & Stemming, Lemmatisation, Transcription parole \\
+Syntaxique & POS Tagging, Chunking, Parsing \\
+Sémantique & NER, WSD (désambiguïsation) \\
+Pragmatique/Discours & Analyse de sentiment, Résolution coréférences \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Par architecture (mécanisme de sortie)}
+\begin{center}
+\begin{tabularx}{\linewidth}{lXl}
+\toprule
+\textbf{Architecture} & \textbf{Sortie} & \textbf{Exemple} \\
+\midrule
+Many-to-One & Un label pour toute la séquence & Sentiment, Intent \\
+Many-to-Many & Un label par token (synchrone) & NER, POS Tagging \\
+Span Extraction & Deux indices (début, fin) & QA extractif (SQuAD) \\
+Seq2Seq & Nouvelle séquence (asynchrone) & Traduction, Résumé \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{keybox}[Labeling vs Span Extraction]
+\textbf{Labeling} : N décisions (une par mot). \textbf{Span Extraction} : 2 pointeurs dans le texte source (« pointage »).
+\end{keybox}
+
+\subsubsection{Sequence Labeling -- Many-to-Many}
+$|X| = |Y|$ (sortie de même longueur que l'entrée)
+\begin{itemize}
+  \item \textbf{POS Tagging} : étiquetage morphosyntaxique (Nom, Verbe, Adj...)
+  \item \textbf{NER} : identification d'entités (Personnes, Lieux, Organisations)
+  \item \textbf{Chunking} : segmentation en groupes syntaxiques (NP, VP)
+  \item \textbf{SRL} : rôles sémantiques (Qui fait quoi ?)
+\end{itemize}
+
+\subsubsection{Schémas d'étiquetage BIO et BIOES}
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Token} & \textbf{BIO} & \textbf{BIOES} \\
+\midrule
+République & B-LOC & B-LOC \\
+Démocratique & I-LOC & I-LOC \\
+du & I-LOC & I-LOC \\
+Congo & I-LOC & E-LOC \\
+(Paris seul) & B-LOC & S-LOC \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{BIOES} réduit les erreurs de segmentation en forçant le modèle à prédire explicitement la fin d'une entité.
+
+\subsection{Paradigmes d'Apprentissage}
+
+\begin{definitionbox}[Les 4 Paradigmes]
+\begin{enumerate}
+  \item \textbf{Supervisé} : couples $(X, Y)$ annotés par l'humain
+  \item \textbf{Non-supervisé} : clustering, topic detection (sans labels)
+  \item \textbf{Auto-supervisé (Self-Supervised)} : labels extraits des données elles-mêmes
+  \item \textbf{RLHF} : alignement sur les préférences humaines (utilité, sécurité)
+\end{enumerate}
+\end{definitionbox}
+
+\subsubsection{SSL -- Tâches Prétexte}
+\begin{itemize}
+  \item \textbf{MLM -- Masked Language Modeling (BERT)} : masque 15\% des mots et les prédit $\Rightarrow$ sémantique bidirectionnelle
+  \item \textbf{CLM -- Causal Language Modeling (GPT)} : prédit le mot suivant $\Rightarrow$ génération de texte
+  \item \textbf{NSP -- Next Sentence Prediction (BERT)} : classification binaire, la phrase B suit-elle A ?
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Pré-entraînement} & \textbf{Tâche en aval (Downstream)} \\
+\midrule
+Auto-supervision (MLM) & Classification / NER \\
+Auto-supervision (CLM) & Chatbots / Résumé / Traduction \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Contrastive Learning}
+\begin{definitionbox}[Principe]
+Rapprocher les exemples similaires (positifs) et éloigner les exemples différents (négatifs). Application phare : \textbf{Word2Vec (Skip-gram + Negative Sampling)}.
+\end{definitionbox}
+\begin{formulebox}[Fonction de perte (simplifiée)]
+\[
+\mathcal{L} = -\log(\sigma(v_{\text{pos}} \cdot v_{\text{target}})) - \sum \log(\sigma(-v_{\text{neg}} \cdot v_{\text{target}}))
+\]
+\end{formulebox}
+
+\subsubsection{RLHF -- Processus en 3 étapes}
+\begin{enumerate}
+  \item \textbf{SFT (Supervised Fine-Tuning)} : entraînement supervisé sur données haute qualité
+  \item \textbf{Reward Modeling (RM)} : modèle de score qui apprend à classer deux réponses ($y_w$ gagnante vs $y_l$ perdante). Perte : $\mathcal{L} = -\log(\sigma(r_\theta(x, y_w) - r_\theta(x, y_l)))$
+  \item \textbf{Optimisation (PPO/DPO)} : ajuster le modèle pour maximiser la récompense tout en restant proche du modèle initial
+\end{enumerate}
+
+\begin{keybox}[Objectifs HHH]
+\textbf{Helpfulness} (Utilité) · \textbf{Honesty} (Honnêteté) · \textbf{Harmlessness} (Innocuité)
+\end{keybox}
+
+% ============================================================
+\section{Analyse de Sentiment}
+% ============================================================
+
+\subsection{Fondamentaux}
+
+\begin{definitionbox}[Niveaux d'analyse]
+\begin{itemize}
+  \item \textbf{Document, Phrase, Aspect (ABSA)}
+  \item \textbf{Polarité} : positif, négatif, neutre
+  \item \textbf{Émotions (Ekman)} : Joie, Colère, Peur, Dégoût, Tristesse, Surprise
+  \item \textbf{Subjectivité vs Objectivité} : opinion («écran trop petit») vs fait («écran 6 pouces»)
+\end{itemize}
+\end{definitionbox}
+
+\begin{warningbox}[Défis sémantiques]
+\begin{itemize}
+  \item \textbf{Négation} : «Le film n'est pas bon mais l'acteur est super»
+  \item \textbf{Litote} : «Le film n'était pas mauvais» $\neq$ «Le film était bon» (atténuation)
+  \item \textbf{Ironie/Sarcasme} : difficile à détecter pour les modèles classiques
+\end{itemize}
+\end{warningbox}
+
+\subsection{Approche Lexicon-based}
+
+\begin{definitionbox}[Hypothèse]
+La polarité globale est une fonction des polarités individuelles des mots.
+\end{definitionbox}
+
+\subsubsection{Approche Dictionnaire (propagation sur WordNet)}
+\begin{enumerate}
+  \item \textbf{Seed words} : excellent(+), horrible(-) -- polarité évidente
+  \item \textbf{Propagation} : synonyme $\Rightarrow$ même polarité, antonyme $\Rightarrow$ polarité inverse
+  \item \textbf{Itération} jusqu'à 0 nouveaux mots ajoutés
+\end{enumerate}
+
+\subsubsection{Algorithme de Turney (approche corpus)}
+\begin{enumerate}
+  \item Extraction de locutions (Adjectif + Nom) via POS-tagging
+  \item Calcul de l'Orientation Sémantique (SO) via la mesure \textbf{PMI}
+  \item Classification du document par la moyenne des scores SO
+\end{enumerate}
+
+\begin{formulebox}[PMI -- Pointwise Mutual Information]
+\[
+\text{PMI}(w_1, w_2) = \log_2 \frac{P(w_1, w_2)}{P(w_1)P(w_2)}
+\]
+PMI $\approx$ 0 : indépendants · PMI $>$ 0 : corrélés · PMI $<$ 0 : exclusion\\
+Si $\text{PMI}(p, \text{"excellent"}) > \text{PMI}(p, \text{"poor"})$ : la locution $p$ est probablement positive.
+\end{formulebox}
+
+\subsubsection{SentiWordNet}
+Chaque entrée WordNet $\Rightarrow$ trois scores : Positivité, Négativité, Objectivité.
+Nécessite la WSD (désambiguïsation) avant application des scores.
+
+\subsection{Deep Learning pour le Sentiment}
+
+\subsubsection{RNN/LSTM}
+\begin{itemize}
+  \item Utilisent des embeddings denses (Word2Vec/GloVe) capturant la sémantique
+  \item Maintiennent un «état mémoire» du début à la fin de la phrase
+  \item Gèrent les dépendances à long terme
+  \item \textbf{Limites} : gradient vanishing, séquentialité (impossible de paralléliser)
+\end{itemize}
+
+\subsubsection{Transformers (BERT)}
+\begin{itemize}
+  \item \textbf{Mécanisme d'Attention} : focus sélectif sur les mots pertinents pour la polarité
+  \item \textbf{Contextualisation} : «terrible» = positif dans «talent terrible», négatif dans «service terrible»
+  \item \textbf{Fine-tuning} : modèle pré-entraîné + couche softmax pour la classification de sentiment
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Critère} & \textbf{Lexique/ML classique} & \textbf{BERT} \\
+\midrule
+Négation complexe & Faible & Excellente \\
+Sarcasme/Ironie & Quasi-nulle & Modérée \\
+Besoin de données & Faible & Élevé (Fine-tuning) \\
+Vitesse d'inférence & Très rapide & Lente (GPU) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{ABSA -- Aspect-Based Sentiment Analysis}
+
+\begin{definitionbox}[ABSA -- Analyse Granulaire]
+Extraire le quintuple \textbf{(entité, aspect, sentiment, opinion holder, temps)}.\\
+Exemple : «Le son est cristallin (+), mais le design est daté (-).» \\
+$\rightarrow$ L'analyse globale donnerait «Neutre», l'ABSA donne deux informations riches.
+\end{definitionbox}
+
+\begin{itemize}
+  \item \textbf{ATE (Aspect Term Extraction)} : identifier «Batterie», «Prix», «Écran» $\Rightarrow$ BIO Tagging
+  \item \textbf{ASC (Aspect Sentiment Classification)} : polarité spécifique à chaque aspect
+\end{itemize}
+
+\begin{formulebox}[Target-Dependent Attention]
+\[
+\text{Attention}(Q_{\text{aspect}}, K_{\text{sentence}}, V_{\text{sentence}})
+\]
+L'aspect sert de \textbf{Query} : le modèle ignore les adjectifs ne concernant pas l'aspect cible.
+\end{formulebox}
+
+\textbf{Joint Learning vs Pipeline} : entraîner un modèle unique pour ATE + ASC simultanément, évitant la propagation d'erreurs.
+
+\subsection{XAI -- Explainability pour l'Analyse de Sentiment}
+\begin{itemize}
+  \item \textbf{SHAP} : attribution de valeur par mot
+  \item \textbf{LIT (Learning Interpretability Tool)} : visualisation des têtes d'attention, analyse «What-if»
+  \item \textbf{Saliency Maps} : quels mots ont le plus influencé la sortie ?
+\end{itemize}
+
+% ============================================================
+\section{Modèles de Langage Probabilistes (N-grammes)}
+% ============================================================
+
+\subsection{Langue comme ensemble de règles (avant 1980)}
+\begin{itemize}
+  \item \textbf{Paradigme symbolique} : règles formelles, grammaires hors-contexte (CFG)
+  \item CFG : tuple $\langle N, \Sigma, S, R \rangle$ (non-terminaux, terminaux, symbole de départ, règles)
+  \item \textbf{Limite} : trop rigide, ne gère pas le bruit, la polysémie, les erreurs
+\end{itemize}
+
+\subsection{Langue comme ensemble de probabilités}
+
+\begin{itemize}
+  \item \textbf{Al-Kindi (IXe s.)} : analyse de fréquence des lettres pour la cryptanalyse
+  \item \textbf{Markov (1913)} : probabilité d'un symbole dépend du précédent
+  \item \textbf{Shannon (1948)} : entropie, langue comme source stochastique, redondance $\sim$50-75\%
+  \item \textbf{IBM (années 80)} : HMM pour la reconnaissance vocale, modèle du canal bruité
+\end{itemize}
+
+\begin{formulebox}[Entropie de Shannon]
+\[
+H = -\sum_{i=1}^{n} P(x_i) \log_2 P(x_i)
+\]
+Entropie élevée = bruit aléatoire · Entropie faible = langage prévisible
+\end{formulebox}
+
+\subsection{N-grammes et Modèles de Langue}
+
+\begin{definitionbox}[Modèle de Langue (LM)]
+Assigne des probabilités à des séquences de mots. Calcule $P(w \mid h)$ ou $P(w_1, \ldots, w_k)$.
+\end{definitionbox}
+
+\begin{formulebox}[Règle de la chaîne + Hypothèse de Markov]
+\[
+P(w_1, \ldots, w_n) = \prod_{k=1}^{n} P(w_k \mid w_1, \ldots, w_{k-1}) \approx \prod_{k=1}^{n} P(w_k \mid w_{k-1})
+\]
+\textbf{MLE (Maximum Likelihood Estimation) pour les bigrammes :}
+\[
+P(w_i \mid w_{i-1}) = \frac{C(w_{i-1}, w_i)}{C(w_{i-1})}
+\]
+\end{formulebox}
+
+\textbf{En pratique} : les trigrammes offrent le meilleur équilibre approximation/complexité.
+
+\subsubsection{Problème des N-grammes à probabilité zéro}
+Tout $n$-gramme absent du corpus reçoit $P = 0 \Rightarrow$ la probabilité de toute phrase le contenant = 0.
+
+\textbf{Vocabulaire ouvert} : modéliser les mots inconnus avec \texttt{<UNK>}.
+
+\subsection{Techniques de Lissage (Smoothing)}
+
+\begin{warningbox}[Pourquoi le lissage ?]
+Ce qu'on n'a pas vu à l'entraînement n'est pas impossible ! Le lissage alloue de la masse de probabilité aux événements rares/non vus.
+\end{warningbox}
+
+\begin{formulebox}[Laplace (Add-1)]
+\[
+P_{\text{Lap}}(w_i \mid w_{i-1}) = \frac{1 + C(w_{i-1}, w_i)}{V + C(w_{i-1})}
+\]
+\textbf{Limite} : donne trop de masse aux événements non vus.
+\end{formulebox}
+
+\begin{formulebox}[Lidstone (Add-$\lambda$)]
+\[
+P_{\text{Lid}}(w_n \mid w_1, \ldots, w_{n-1}) = \frac{\lambda + C(w_1, \ldots, w_n)}{\lambda V + C(w_1, \ldots, w_{n-1})}, \quad 0 < \lambda \leq 1
+\]
+\end{formulebox}
+
+\subsubsection{Interpolation et Backoff}
+
+\begin{definitionbox}[Interpolation linéaire (Jelinek-Mercer)]
+Combiner trigramme, bigramme et unigramme pondérés par des $\lambda_i$ :
+\[
+\hat{P}(w_n \mid w_{n-2}, w_{n-1}) = \lambda_1 P(w_n \mid w_{n-2}, w_{n-1}) + \lambda_2 P(w_n \mid w_{n-1}) + \lambda_3 P(w_n)
+\]
+avec $\sum_i \lambda_i = 1$.
+\end{definitionbox}
+
+\begin{definitionbox}[Backoff (Katz)]
+Si le $n$-gramme a un compte nul, on «recule» vers un modèle d'ordre inférieur (en escomptant les probabilités pour maintenir une distribution valide).
+\end{definitionbox}
+
+\subsubsection{Good-Turing Smoothing}
+\textbf{Idée} : utiliser le compte des événements vus une fois pour estimer le compte des événements jamais vus. $c^* \approx (c - 0.75)$ (Absolute Discounting).
+
+\subsection{Évaluation des Modèles de Langue}
+
+\begin{itemize}
+  \item \textbf{Évaluation extrinsèque} : intégrer le LM dans une application et mesurer l'amélioration (coûteux)
+  \item \textbf{Évaluation intrinsèque} : mesurer la qualité du LM de façon indépendante
+\end{itemize}
+
+\begin{definitionbox}[Perplexité]
+Mesure à quel point un LM prédit correctement un échantillon.\\
+\textbf{Perplexité faible = meilleur modèle.}
+\[
+\text{PP}(W) = P(w_1, w_2, \ldots, w_N)^{-1/N}
+\]
+\end{definitionbox}
+
+\textbf{Découpage standard} : 80\% entraînement, 10\% développement (devset), 10\% test.
+
+% ============================================================
+\section{Plongements Lexicaux (Word Embeddings)}
+% ============================================================
+
+\subsection{Motivations et Limites du One-Hot}
+
+\begin{warningbox}[Limites du One-Hot Encoding]
+\begin{itemize}
+  \item \textbf{Vecteurs orthogonaux} : cosinus = 0 entre tous les mots $\Rightarrow$ pas de similarité sémantique
+  \item \textbf{Très haute dimension} $\mathbb{R}^V$ (millions de dimensions) $\Rightarrow$ malédiction de la dimension
+  \item \textbf{Représentation discrète} : pas de notion de proximité
+\end{itemize}
+\end{warningbox}
+
+\begin{keybox}[Hypothèse Distributionnelle]
+\textit{«You shall know a word by the company it keeps»} -- J.R. Firth (1957)\\
+Le sens d'un mot est défini par les contextes (voisins) dans lesquels il apparaît.\\
+Le \textbf{contexte} = mots dans un rayon $m$ autour du mot central.
+\end{keybox}
+
+\subsection{Word Embeddings -- Avantages}
+\begin{itemize}
+  \item Représentations \textbf{denses} de dimension $D$ (100-300) avec $D \ll |V|$
+  \item Capture la \textbf{sémantique} : roi + femme $-$ homme $\approx$ reine
+  \item Projection TensorFlow : \url{https://projector.tensorflow.org/}
+\end{itemize}
+
+\subsection{Word2Vec (Mikolov et al., Google 2013)}
+
+\begin{definitionbox}[Deux architectures]
+\begin{itemize}
+  \item \textbf{Skip-gram} : prédit le contexte à partir d'un mot central $P(C \mid W)$
+  \item \textbf{CBOW} : prédit le mot cible à partir du contexte $P(W \mid C)$
+\end{itemize}
+\end{definitionbox}
+
+\subsubsection{Étapes Skip-gram}
+\begin{enumerate}
+  \item \textbf{Vocabulaire} : créer le vocabulaire, attribuer des indices
+  \item \textbf{Fenêtre glissante} : générer des paires (mot cible, mot contexte) pour chaque position
+  \item \textbf{Réseau de neurones} : couche entrée $\rightarrow$ couche cachée (embeddings, \textbf{linéaire}) $\rightarrow$ softmax
+  \item \textbf{Rétropropagation} : ajuster les vecteurs via descente de gradient
+  \item \textbf{Extraction} : poids de la couche cachée = embeddings finaux
+\end{enumerate}
+
+\begin{formulebox}[Probabilité Skip-gram (Softmax)]
+\[
+P(w_{\text{contexte}} \mid w_{\text{cible}}) = \frac{\exp(v_{\text{contexte}} \cdot v_{\text{cible}})}{\sum_{k=1}^{N} \exp(v_k \cdot v_{\text{cible}})}
+\]
+\textbf{En pratique} : Negative Sampling ou Hierarchical Softmax (trop coûteux pour vocab $\sim 1$M)
+\end{formulebox}
+
+\begin{keybox}[Negative Sampling]
+Apprentissage contrastif : maximiser la probabilité de la paire réelle vs mots aléatoires (bruit). Inspiré de CLIP (OpenAI). Transforme la classification sur $V$ classes en classification binaire ultra-rapide.
+\end{keybox}
+
+\subsection{GloVe (Pennington et al., 2014)}
+Vecteurs globaux basés sur les statistiques de co-occurrence dans tout le corpus.
+
+\subsection{FastText (Joulin et al., Facebook 2016)}
+
+\begin{definitionbox}[Innovation : représentation par sous-mots]
+Décompose chaque mot en $n$-grams de caractères ($n \in \{3, 4, 5, 6\}$).\\
+\textbf{Exemple} : \texttt{apple} $\rightarrow$ \texttt{<ap, app, ppl, ple, le>} + \texttt{<apple>}\\
+\[
+v(\text{apple}) = v(\texttt{<ap}) + v(\texttt{app}) + v(\texttt{ppl}) + v(\texttt{ple}) + v(\texttt{le>}) + v(\texttt{<apple>})
+\]
+\end{definitionbox}
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Critère} & \textbf{Word2Vec} & \textbf{FastText} \\
+\midrule
+Représentation & Mot entier (one-hot) & Somme des $n$-grams \\
+Mots OOV & Impossible (KeyError) & Possible (via $n$-grams) \\
+Langues morphologiques & Inefficace & Efficace \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Synthèse des représentations}
+\begin{itemize}
+  \item \textbf{One-Hot} : granularité = mot atomique (aucune relation)
+  \item \textbf{Word2Vec} : granularité = mot sémantique (voisinage)
+  \item \textbf{FastText} : granularité = sous-mots/caractères (morphologie)
+\end{itemize}
+
+\textbf{ELMo (2018)} : premiers embeddings \textbf{contextualisés} (Bi-LSTM). Actuellement, les embeddings reposent sur les Transformers (BERT, GPT...).
+
+% ============================================================
+\section{Modèles de Langues Neuronaux -- De la Récurrence à l'Attention}
+% ============================================================
+
+\subsection{RNN -- Réseaux de Neurones Récurrents}
+
+\begin{formulebox}[Équations RNN]
+\[
+h_t = \phi(W_{hh} h_{t-1} + W_{xh} x_t + b_h)
+\]
+\[
+y_t = W_{hy} h_t + b_y
+\]
+$h_t$ = état caché (mémoire à court terme), $\phi$ = tanh
+\end{formulebox}
+
+\begin{warningbox}[Limites des RNN]
+\begin{itemize}
+  \item \textbf{Gradient vanishing} : difficulté à retenir l'information sur de longs textes
+  \item \textbf{Séquentialité} : impossible de paralléliser $\Rightarrow$ lent pour le Big Data
+  \item BPTT (Backpropagation Through Time) requis pour l'entraînement
+\end{itemize}
+\end{warningbox}
+
+\subsection{LSTM -- Long Short-Term Memory}
+
+\begin{formulebox}[Les 3 portes + cellule d'état]
+\begin{align*}
+f_t &= \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) \quad \text{(Oubli)}\\
+i_t &= \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) \quad \text{(Entrée)}\\
+o_t &= \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) \quad \text{(Sortie)}\\
+c_t &= f_t \odot c_{t-1} + i_t \odot \tilde{c}_t \quad \text{(Mise à jour cellule)}
+\end{align*}
+L'information peut circuler sur de longues distances sans altération majeure.
+\end{formulebox}
+
+\textbf{Seq2Seq (2014)} : architecture encodeur-décodeur (LSTM), état de l'art pour traduction.
+
+\subsection{La Révolution du Transformer (Vaswani et al., 2017)}
+
+\subsubsection{Encodeur vs Décodeur}
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Composant} & \textbf{Encodeur} & \textbf{Décodeur} \\
+\midrule
+Rôle & Compréhension (Source) & Génération (Cible) \\
+Attention & Bidirectionnelle (voit tout) & Masquée (voit le passé) \\
+Modèles & BERT, RoBERTa & GPT-1/2/3/4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Input Embedding + Positional Encoding}
+\[
+X_{\text{input}} = \text{Embedding} + \text{PositionalEncoding}
+\]
+Le Transformer traite tous les mots \textbf{en parallèle} $\Rightarrow$ nécessite d'encoder la position.
+
+\begin{formulebox}[Encodage Positionnel Sinusoïdal (Vaswani)]
+\[
+PE_{(\text{pos}, 2i)} = \sin\!\left(\frac{\text{pos}}{10000^{2i/d_{\text{model}}}}\right), \quad
+PE_{(\text{pos}, 2i+1)} = \cos\!\left(\frac{\text{pos}}{10000^{2i/d_{\text{model}}}}\right)
+\]
+Propriété : $PE_{\text{pos}+k}$ est une fonction linéaire de $PE_{\text{pos}}$ $\Rightarrow$ le modèle apprend les relations relatives.
+\end{formulebox}
+
+\subsubsection{Self-Attention (Auto-Attention)}
+
+\begin{definitionbox}[{Q, K, V -- Principes}]
+\begin{itemize}
+  \item \textbf{Query (Q)} : «Ce que je cherche» -- le mot pose une question
+  \item \textbf{Key (K)} : «Ce que je propose» -- le mot indique son contenu
+  \item \textbf{Value (V)} : «Ce que je transmets» -- l'info réelle à propager
+\end{itemize}
+\end{definitionbox}
+
+\begin{formulebox}[Calcul de l'Attention (Scaled Dot-Product)]
+\[
+\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right) V
+\]
+1. Score : $Q \cdot K^T$ \quad 2. Normalisation : $/ \sqrt{d_k}$ + softmax \quad 3. Agrégation : $\times V$
+\end{formulebox}
+
+\subsubsection{Multi-Head Attention (MHA)}
+\begin{formulebox}[MHA]
+\[
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W^O
+\]
+Chaque tête capture une relation différente (syntaxe, sémantique...). Parallélisation totale sur GPU.
+\end{formulebox}
+
+\subsection{RAG -- Retrieval-Augmented Generation}
+
+\begin{definitionbox}[Définition RAG]
+Architecture étendant les capacités d'un LLM en lui donnant accès à des \textbf{données externes}. Au lieu de se fier à sa «mémoire paramétrique», le système interroge une «mémoire externe».
+\begin{itemize}
+  \item Réduction des hallucinations
+  \item Mise à jour des connaissances sans ré-entraînement
+  \item Citations des sources
+\end{itemize}
+\end{definitionbox}
+
+\begin{formulebox}[Similarité Cosinus]
+\[
+\text{sim}(u, v) = \frac{u \cdot v}{\|u\| \|v\|}
+\]
+\end{formulebox}
+
+\textbf{Étape 1 -- Indexation :}
+\begin{enumerate}
+  \item \textbf{Chunking} : découpage des documents (ex: 500 tokens)
+  \item \textbf{Embedding} : conversion en vecteur via Bi-Encoder (BERT, Ada-002)
+  \item \textbf{Stockage} : dans un Vector Store (Pinecone, Milvus, Weaviate)
+\end{enumerate}
+
+\textbf{Étape 2 -- Récupération \& Génération :}
+\begin{enumerate}
+  \item Vectorisation de la question : $v_q$
+  \item Extraction des $k$ segments les plus proches
+  \item Augmentation du prompt + Génération par le LLM
+\end{enumerate}
+
+\subsection{Fine-tuning des Modèles}
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Méthode} & \textbf{Description} & \textbf{Usage} \\
+\midrule
+Fine-tuning complet & Tous les paramètres mis à jour & Performance max / coût élevé \\
+PEFT (LoRA, etc.) & $< 1\%$ des paramètres entraînés & Efficace en mémoire \\
+Few-shot prompting & Pas de mise à jour des poids & Prototypage rapide \\
+Chain-of-Thought & Raisonnement étape par étape & Arithmétique, logique \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{definitionbox}[LoRA (Low-Rank Adaptation)]
+Hypothèse : la mise à jour des poids $\Delta W$ a un «rang intrinsèque» faible.\\
+Au lieu de modifier $W \in \mathbb{R}^{d \times k}$, on injecte deux matrices bas rang : $h = W_0 x + BAx$.\\
+Seules $A$ et $B$ sont entraînées ; $W_0$ est gelé $\Rightarrow$ gain mémoire massif.
+\end{definitionbox}
+
+\begin{definitionbox}[Chain of Thought (CoT)]
+Standard : Entrée $\rightarrow$ Réponse\\
+CoT : Entrée $\rightarrow$ Raisonnement (rationales) $\rightarrow$ Réponse\\
+\textbf{STaR} : le modèle génère des CoT, filtre les corrects, se fine-tune dessus (itératif).\\
+\textbf{Propriété émergente} : le CoT n'apparaît que sur des modèles $>$ 7B paramètres.
+\end{definitionbox}
+
+% ============================================================
+\section{Métriques d'Évaluation en TALN}
+% ============================================================
+
+\subsection{Classification et Labellisation}
+
+\begin{formulebox}[{Précision, Rappel, F-Score}]\[
+P = \frac{TP}{TP + FP}, \quad R = \frac{TP}{TP + FN}, \quad F_\beta = (1 + \beta^2) \cdot \frac{P \cdot R}{(\beta^2 \cdot P) + R}
+\]
+\[
+F_1 = 2 \cdot \frac{P \cdot R}{P + R} = \frac{2TP}{2TP + FP + FN}
+\]
+\end{formulebox}
+
+\subsection{NER : Biais d'évaluation}
+
+\begin{warningbox}[Évaluation au niveau Token -- Biais]
+\begin{itemize}
+  \item \textbf{Sur-évaluation} : une entité tronquée («CHU» au lieu de «CHU Mohammed VI») donne un VP au premier token, gonflant artificiellement les métriques
+  \item \textbf{Sévérité excessive} (exact-match binaire) : pénalise une extraction partielle aussi lourdement qu'une absence totale
+\end{itemize}
+\end{warningbox}
+
+\subsubsection{Standard CoNLL (Strict)}
+Pour qu'une entité soit TP : frontières exactes ET type exact.
+\[
+\begin{cases}
+\text{Token}_{\text{début,pred}} = \text{Token}_{\text{début,ref}} \text{ et } \text{Token}_{\text{fin,pred}} = \text{Token}_{\text{fin,ref}}\\
+\text{Classe}_{\text{pred}} = \text{Classe}_{\text{ref}}
+\end{cases}
+\]
+
+\subsubsection{Standard MUC (Flexible)}
+Décompose en : \textbf{COR} (correct) + \textbf{PAR} (partiel) + \textbf{INC} (incorrect)
+\[
+P_{\text{MUC}} = \frac{\text{COR} + 0.5 \times \text{PAR}}{\text{Total prédictions}}, \quad R_{\text{MUC}} = \frac{\text{COR} + 0.5 \times \text{PAR}}{\text{Total références}}
+\]
+
+
+\begin{tabular}{lll}
+\toprule
+\textbf{Prédiction} & \textbf{CoNLL} & \textbf{MUC} \\
+\midrule
+{[CHU Mohammed VI]} LOC correct & TP & Score max \\
+{[CHU Mohammed VI]} PER (type erroné) & FP+FN & Partiel (frontière OK, type inc.) \\
+{[CHU]} LOC (tronqué) & FP+FN & Partiel (type OK, frontière part.) \\
+{[Université de Marrakech]} LOC & FP+FN & INC \\
+\bottomrule
+\end{tabular}
+
+\subsection{Métriques Lexicales (Traduction/Résumé)}
+
+\subsubsection{BLEU (Bilingual Evaluation Understudy)}
+
+\begin{definitionbox}[BLEU -- Orienté Précision]
+Précision des $n$-grammes, corrigée pour éviter le sur-comptage.
+\end{definitionbox}
+
+\begin{formulebox}[BLEU -- Formule]
+\[
+p_n = \frac{\sum_C \sum_{\text{n-gram} \in C} \text{Count}_{\text{clip}}(\text{n-gram})}{\sum_C \sum_{\text{n-gram} \in C} \text{Count}(\text{n-gram})}
+\]
+\[
+BP = \begin{cases} 1 & \text{si } c > r \\ e^{(1-r/c)} & \text{si } c \leq r \end{cases}
+\qquad
+\text{BLEU} = BP \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log p_n\right)
+\]
+$N=4$, $w_n = 1/N$ généralement. La BP pénalise les traductions trop courtes.
+\end{formulebox}
+
+\textbf{Exemple BLEU-2 :}
+\begin{itemize}
+  \item Référence : «le chat est sur le tapis» ($r=6$)
+  \item Hypothèse : «le chat le chat est sur tapis» ($c=7$)
+  \item $p_1 = 6/7 \approx 0.857$, $p_2 = 3/6 = 0.5$, $BP = 1$
+  \item $\text{BLEU}_2 = \sqrt{0.857 \times 0.5} \approx 0.655$ (65.5\%)
+\end{itemize}
+
+\subsubsection{ROUGE (Recall-Oriented Understudy for Gisting Evaluation)}
+
+\begin{definitionbox}[ROUGE -- Orienté Rappel (Résumé)]
+\begin{itemize}
+  \item \textbf{ROUGE-N} : rappel des $n$-grammes
+  \[
+  \text{ROUGE-N} = \frac{\sum_R \sum_{\text{n-gram} \in R} \text{Count}_{\text{match}}(\text{n-gram})}{\sum_R \sum_{\text{n-gram} \in R} \text{Count}(\text{n-gram})}
+  \]
+  \item \textbf{ROUGE-L} : Plus Longue Sous-Séquence Commune (LCS) -- similarité de structure sans exiger la contiguïté
+\end{itemize}
+\end{definitionbox}
+
+\textbf{Exemple :} Référence «le chat est sur le tapis» ($|R|=6$), Hypothèse «le chat est assis» ($|H|=4$) :
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Métrique} & \textbf{Rappel} & \textbf{Précision} & \textbf{F1} \\
+\midrule
+ROUGE-1 & 3/6 = 0.50 & 3/4 = 0.75 & 0.60 \\
+ROUGE-2 & 2/5 = 0.40 & 2/3 = 0.67 & 0.50 \\
+ROUGE-L (LCS=3) & 3/6 = 0.50 & 3/4 = 0.75 & 0.60 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warningbox}[Limites des métriques lexicales]
+Un synonyme parfait non présent dans la référence sera lourdement pénalisé. Absence totale de prise en compte de la sémantique.
+\end{warningbox}
+
+\subsection{Métriques Sémantiques (Embeddings)}
+
+\subsubsection{BERTScore}
+Utilise les représentations contextualisées de BERT pour calculer la \textbf{similarité cosinus} entre chaque token généré et chaque token de référence.
+\[
+R_{\text{BERT}} = \frac{1}{|y|} \sum_{y_j \in y} \max_{x_i \in x} x_i^\top y_j, \qquad
+P_{\text{BERT}} = \frac{1}{|x|} \sum_{x_i \in x} \max_{y_j \in y} x_i^\top y_j
+\]
+
+\subsubsection{COMET et BLEURT}
+Métriques de régression apprises (Transformers fine-tunés sur des évaluations humaines WMT). Prédisent directement une note de qualité humaine.
+
+\subsection{Évaluation des LLMs}
+
+\subsubsection{Benchmarks standardisés}
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+\textbf{Benchmark} & \textbf{Ce qu'il évalue} \\
+\midrule
+MMLU & Connaissances multidisciplinaires (57 domaines), QCM \\
+GSM8K / MATH & Raisonnement mathématique multi-étapes \\
+HumanEval (pass@k) & Complétion de code Python (exécution fonctionnelle) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{LLM-as-a-Judge}
+Utilisation d'un LLM frontière (GPT-4) comme juge. Deux modes :
+\begin{itemize}
+  \item \textbf{Pairwise Comparison} : juge deux réponses et déclare un vainqueur
+  \item \textbf{Single Answer Grading} : note une réponse absolument
+\end{itemize}
+
+\begin{warningbox}[Biais du Juge Artificiel]
+\begin{itemize}
+  \item \textbf{Position Bias} : favorise la réponse présentée en premier (parade : inverser l'ordre)
+  \item \textbf{Verbosity Bias} : associe prolixité à qualité (réponse longue $>$ réponse concise)
+  \item \textbf{Self-Enhancement Bias} : note élevée pour les réponses de la même lignée de modèles
+\end{itemize}
+\end{warningbox}
+
+\subsubsection{Sécurité, Véridicité et NLI}
+
+\begin{definitionbox}[NLI pour détecter les Hallucinations]
+Vérification factuelle formalisée comme un problème de logique linguistique :
+\begin{itemize}
+  \item \textbf{Prémisse (P)} : source de vérité (dossier médical, texte de loi)
+  \item \textbf{Hypothèse (H)} : réponse générée par le modèle évalué
+\end{itemize}
+Classification par un modèle NLI :
+\begin{enumerate}
+  \item \textbf{Entailment} : H est logiquement garantie par P $\Rightarrow$ pas d'hallucination
+  \item \textbf{Contradiction} : H contredit P $\Rightarrow$ hallucination stricte
+  \item \textbf{Neutral} : H ni confirmée ni infirmée $\Rightarrow$ hallucination par extrapolation
+\end{enumerate}
+Taux d'hallucination = proportion de (Contradiction + Neutral).
+\end{definitionbox}
+
+% ============================================================
+\section{Récapitulatif Synthétique -- Fiches Mémo}
+% ============================================================
+
+\begin{multicols}{2}
+
+\begin{keybox}[Formules Clés à Retenir]
+\textbf{TF-IDF :} $\text{TF} \times \log(|D| / df)$\\
+\textbf{Attention :} $\text{softmax}(QK^T/\sqrt{d_k})V$\\
+\textbf{LSTM Oubli :} $f_t = \sigma(W_f [h_{t-1}, x_t])$\\
+\textbf{BLEU :} $BP \cdot \exp(\sum w_n \log p_n)$\\
+\textbf{F1 :} $2TP / (2TP + FP + FN)$\\
+\textbf{PMI :} $\log_2 P(w_1,w_2)/[P(w_1)P(w_2)]$\\
+\textbf{LoRA :} $h = W_0 x + BAx$\\
+\textbf{CoT :} $P(y|x) = \sum_r P(r|x) P(y|r,x)$
+\end{keybox}
+
+\columnbreak
+
+\begin{keybox}[Modèles et Dates Clés]
+\textbf{Word2Vec} : Mikolov, Google 2013\\
+\textbf{GloVe} : Pennington, Stanford 2014\\
+\textbf{FastText} : Joulin, Facebook 2016\\
+\textbf{ELMo} : Peters et al., Google 2018 (BiLSTM)\\
+\textbf{Transformer} : Vaswani et al. 2017\\
+\textbf{BERT} : Google 2018 (MLM + NSP)\\
+\textbf{GPT-1/2/3} : OpenAI 2018/2019/2020 (CLM)\\
+\textbf{LoRA} : Hu et al. 2021\\
+\textbf{DPO} : Rafailov et al. 2023
+\end{keybox}
+
+\end{multicols}
+
+\begin{keybox}[Tableau de Synthèse des Paradigmes]
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Paradigme} & \textbf{Mécanisme} & \textbf{Cas d'usage} \\
+\midrule
+Self-Supervised & MLM, CLM & Comprendre la langue (corpus massif) \\
+Contrastive Learning & Negative Sampling & Structurer l'espace vectoriel \\
+Supervisé & Couples $(X, Y)$ & Tâches métier (peu de données) \\
+RLHF & PPO/DPO + Reward Model & Comportement humain, sécurité \\
+RAG & Vector Store + LLM & Connaissances externes, réduire hallucinations \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{keybox}
+
+\begin{keybox}[Stack Technologique en 2026]
+\textbf{Baseline / Prototypage :} VADER, TextBlob, TF-IDF + SVM\\
+\textbf{Production :} Fine-tuning DistilBERT, MobileBERT (PEFT/LoRA)\\
+\textbf{Arabe :} AraBERT, CamelTools, MARBERT\\
+\textbf{RAG :} Bi-Encoder + Vector Store (FAISS, Milvus) + Re-ranker (Cross-Encoder) + RAGAS (évaluation)\\
+\textbf{LLMs Frontier :} GPT-4, Claude (few-shot, analyses qualitatives profondes)
+\end{keybox}
+
+\vspace{6pt}
+\begin{center}
+\begin{tcolorbox}[colback=primary!10, colframe=primary, width=0.95\linewidth]
+\centering
+\textbf{Bon courage pour l'examen ! ☺}\\
+{\small NLP -- Master IA FSSM -- J.ZAHIR 2026}
+\end{tcolorbox}
+\end{center}
+
+\end{document}

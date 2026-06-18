@@ -1,0 +1,116 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+h1 {
+    text-align: center;
+    color: #333;
+}
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    position: relative;
+    min-height: 60px;
+}
+.upload-area:hover {
+    border-color: #007bff;
+}
+.upload-area.has-image {
+    border-color: #28a745;
+    padding: 10px;
+}
+.upload-area input[type="file"] {
+    display: none;
+}
+.image-preview {
+    display: none;
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 6px;
+    margin-top: 10px;
+    object-fit: contain;
+}
+.image-preview.visible {
+    display: block;
+}
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+button {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+}
+button:hover:not(:disabled) {
+    background: #0056b3;
+}
+button:disabled {
+    background: #6c9bd2;
+    cursor: not-allowed;
+}
+#result {
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+.result-card {
+    padding: 15px;
+    border-radius: 5px;
+    color: white;
+}
+.result-card.coherent {
+    background: #28a745;
+}
+.result-card.incoherent {
+    background: #dc3545;
+}
+.result-card.error {
+    background: #6c757d;
+}
+
+/* Spinner */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

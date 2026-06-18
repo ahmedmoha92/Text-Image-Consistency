@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Outil de détection d'incohérence sémantique entre une image et sa légende, utilisant le Machine Learning.">
+    <title>Détection d'incohérence texte-image</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Détection d'incohérence</h1>
+        <div class="upload-area" id="dropzone">
+            <p id="dropzone-text">Glissez une image ou cliquez pour sélectionner</p>
+            <input type="file" id="imageInput" accept="image/*">
+            <img id="imagePreview" class="image-preview" alt="Aperçu de l'image sélectionnée">
+        </div>
+        <textarea id="textInput" placeholder="Entrez le texte associé..."></textarea>
+        <button id="predictBtn">
+            <span id="btnText">Prédire</span>
+            <span id="btnSpinner" class="spinner" hidden></span>
+        </button>
+        <div id="result"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

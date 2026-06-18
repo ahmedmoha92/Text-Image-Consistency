@@ -1,0 +1,9 @@
+data/raw/
+data/processed/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+
+# Model artifacts (large binary files)
+*.pkl
