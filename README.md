@@ -1,52 +1,54 @@
-# 🖼️ Détection d'Incohérence Texte-Image
+# 🖼️ Text-Image Inconsistency Detection
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-enabled-blue.svg)](https://www.docker.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Système de détection d'incohérence sémantique entre une image et sa légende, utilisant le Machine Learning (Random Forest) et une architecture micro-services conteneurisée.
+> **Note:** This is an academic project developed for a Machine Learning module.
+
+A semantic inconsistency detection system between an image and its caption, using Machine Learning (Random Forest) and a containerized microservices architecture.
 
 ---
 
 ## 🛠️ Architecture & Services
 
-Le projet est divisé en trois services principaux orchestrés par Docker :
+The project is divided into three main services orchestrated by Docker:
 
-*   **API Backend (Flask)** : `http://localhost:5009` - Gère les prédictions en temps réel.
-*   **Interface Frontend (Web)** : `http://localhost:8081` - Interface utilisateur simple pour uploader une image et tester une légende.
-*   **Jupyter Notebook** : `http://localhost:8891` - Environnement de développement pour l'expérimentation ML.
+*   **Backend API (Flask)**: `http://localhost:5009` - Handles real-time predictions.
+*   **Frontend Interface (Web)**: `http://localhost:8081` - Simple user interface to upload an image and test a caption.
+*   **Jupyter Notebook**: `http://localhost:8891` - Development environment for ML experimentation.
 
 ---
 
 ## 🚀 Installation & Configuration
 
-### 1. Préparation des données (Exemple MSCOCO)
+### 1. Data Preparation (MSCOCO Example)
 
-Suivez ces étapes dans l'ordre pour préparer votre dataset de manière optimale :
+Follow these steps in order to optimally prepare your dataset:
 
 ```bash
-# A. Télécharger les données brutes
+# A. Download raw data
 python3 scripts/download_datasets.py --dataset mscoco
 
-# B. Préparer le format (Images + Textes individuels)
+# B. Prepare format (Images + Individual texts)
 python3 scripts/prepare_coco.py
 
-# C. Générer les paires (Cohérentes et Incohérentes pour l'entraînement)
+# C. Generate pairs (Coherent and Incoherent for training)
 python3 scripts/generate_pairs.py --source data/raw/coco_prepared --output data/processed
 ```
 
-### 2. Entraînement du modèle
+### 2. Model Training
 
-Une fois les données générées, lancez l'entraînement du modèle Random Forest :
+Once the data is generated, launch the training of the Random Forest model:
 
 ```bash
 export PYTHONPATH=$PYTHONPATH:.
 python3 src/models/train.py
 ```
 
-### 3. Lancement avec Docker
+### 3. Launch with Docker
 
-Déployez l'application complète en une seule commande :
+Deploy the complete application with a single command:
 
 ```bash
 docker compose build
@@ -55,38 +57,38 @@ docker compose up -d
 
 ---
 
-## 🖥️ Utilisation de l'API
+## 🖥️ API Usage
 
-Vous pouvez tester l'API directement via `curl` :
+You can test the API directly via `curl`:
 
 ```bash
 curl -X POST http://localhost:5009/predict \
   -H "Content-Type: application/json" \
   -d '{
-    "text": "Un chat noir sur un tapis rouge",
+    "text": "A black cat on a red carpet",
     "image": "BASE64_ENCODED_IMAGE_STRING"
   }'
 ```
 
 ---
 
-## 📂 Structure du Projet
+## 📂 Project Structure
 
 ```text
 .
-├── api/              # API Flask et logique de service
-├── frontend/         # Interface utilisateur (HTML/JS/CSS)
-├── src/              # Noyau du projet (extraction de features, modèles)
-│   ├── features/     # Logique d'extraction (Image & Texte)
-│   └── models/       # Script d'entraînement et stockage
-├── scripts/          # Utilitaires de gestion des données
-├── notebooks/        # Expérimentations Data Science
-├── data/             # Données brutes et traitées (ignoré par Git)
-└── docker-compose.yml # Orchestration des services
+├── api/              # Flask API and service logic
+├── frontend/         # User interface (HTML/JS/CSS)
+├── src/              # Project core (feature extraction, models)
+│   ├── features/     # Extraction logic (Image & Text)
+│   └── models/       # Training script and storage
+├── scripts/          # Data management utilities
+├── notebooks/        # Data Science experiments
+├── data/             # Raw and processed data (ignored by Git)
+└── docker-compose.yml # Services orchestration
 ```
 
 ---
 
-## 📄 Licence
+## 📄 License
 
-Distribué sous la licence MIT. Voir `LICENSE` pour plus d'informations.
+Distributed under the MIT License. See `LICENSE` for more information.
